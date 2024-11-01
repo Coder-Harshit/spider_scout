@@ -8,7 +8,7 @@ class Scheduler:
     def crawl(self, seed_url):
         self.url_frontier.add_url(seed_url)
 
-        while not self.url_frontier.is_empty():
+        while self.url_frontier.has_next():
             url = self.url_frontier.get_next_url()
 
             try:
@@ -16,8 +16,11 @@ class Scheduler:
                 if html_content:
                     text, links, metadata = self.parser.parse(html_content)
 
-                    self.indexer.index(url, text, links, metadata)
-                    
+                    self.indexer.index(url, text, links)
+
+                    #for debugging stoping here (unless depth limit has been implemented)
+                    break
+
                     for link in links:
                         self.url_frontier.add_url(link)
             
