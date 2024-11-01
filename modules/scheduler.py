@@ -7,8 +7,19 @@ class Scheduler:
 
     def crawl(self, seed_url):
         self.url_frontier.add_url(seed_url)
-        while self.url_frontier.has_next():
+
+        while not self.url_frontier.is_empty():
             url = self.url_frontier.get_next_url()
-            html_content = self.downloader.fetch(url)
-            extracted_data = self.parser.parse(html_content)
-            self.indexer.index(url, extracted_data)
+
+            try:
+                html_content = self.downloader.fetch(url)
+                if html_content:
+                    text, links, metadata = self.parser.parse(html_content)
+
+                    self.indexer.index(url, text, links, metadata)
+                    
+                    for link in links:
+                        self.url_frontier.add_url(link)
+            
+            except Exception as e:
+                print(f"Error processing {url}: {e}")

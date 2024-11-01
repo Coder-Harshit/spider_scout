@@ -19,5 +19,9 @@ class Parser:
         desc_tag = soup.find('meta', attrs={'name':'description'})
         desc = desc_tag['content'] if desc_tag else None
         
-        metadata = {'title':title, 'description':desc}
+        metadata = {
+            'title':title,
+            'description':desc
+        }
+        
         return textual_content, links, metadata
