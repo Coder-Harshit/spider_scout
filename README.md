@@ -4,11 +4,11 @@
 ### URL Frontier Module
 Responsible for managing & selection of the URLs (for crawlling)
 
-### Parser Module
-To Parse the HTML content and extract the metadata, images, links etc.
-
 ### Downloader Module
-To Download the parsed data as per the politeness policies
+To download the web page as per the politeness policies
+
+### Parser Module
+Parses the HTML content and extract the metadata, images, links etc. from the downloaded content
 
 ### Indexer Module
 Responsible for maintaining the inverted index of the retrieved/extracted data
