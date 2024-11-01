@@ -11,7 +11,6 @@ class URLFrontier:
         # logging
         print(f"Adding URL to frontier: {url}", file=open('spiderscout.log', 'a'))
         #######################################
-        self.frontier.put(url)
         if url not in self.visited:
             self.frontier.put((priority,url))
             self.visited.add(url)
