@@ -1,0 +1,2 @@
+class URLFrontier:
+    pass
