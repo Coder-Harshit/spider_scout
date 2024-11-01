@@ -1,6 +1,3 @@
-import requests
-from bs4 import BeautifulSoup
-
 from modules import frontier, parser, downloader, indexer, scheduler
 
 url_frontier = frontier.URLFrontier()
