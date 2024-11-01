@@ -5,6 +5,11 @@ class Indexer:
         self.text_index = {}
 
     def index(self, url, text, links):
+        #######################################
+        # logging
+        print(f"Indexing URL: {url}", file=open('spiderscout.log', 'a'))
+        #######################################
+
         # Index URLs
         for link in links:
             if link not in self.url_index:

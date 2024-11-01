@@ -2,6 +2,11 @@ from bs4 import BeautifulSoup
 
 class Parser:
     def parse(self, html_content):
+        #######################################
+        # logging
+        print(f"Parsing HTML content:", file=open('spiderscout.log', 'a'))
+        #####
+
         soup = BeautifulSoup(html_content, 'html.parser')
 
         textual_content = soup.get_text()
@@ -23,5 +28,11 @@ class Parser:
             'title':title,
             'description':desc
         }
-        
+
+        #####
+        print(f"Extracted text: {textual_content}", file=open('spiderscout.log', 'a'))
+        print(f"Extracted links: {links}", file=open('spiderscout.log', 'a'))
+        print(f"Extracted metadata: {metadata}", file=open('spiderscout.log', 'a'))
+        #######################################
+
         return textual_content, links, metadata
