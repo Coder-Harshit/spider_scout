@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
+import re
 
 class Parser:
-    def parse(self, html_content):
+    def parse(self, html_content, root_url):
         #######################################
         # logging
         print(f"Parsing HTML content:", file=open('spiderscout.log', 'a'))
@@ -11,12 +12,20 @@ class Parser:
 
         textual_content = soup.get_text()
 
-        links = []
+        # links = []
+        links = set()
         for link in soup.find_all('a'):
             # in all anchor tags
             href = link.get('href')
             if href:
-                links.append(href)
+                if re.search("^http",href):
+                    # links.append(href)
+                    # links.add(href)
+                    links.add(href.rstrip("/"))
+                else:
+                    # links.append(root_url+href)
+                    # links.add(root_url+href)
+                    links.add((root_url+href).rstrip("/"))
         
         # metadata
         title = soup.title.text if soup.title else None

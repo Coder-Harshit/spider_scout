@@ -14,10 +14,12 @@ class Indexer:
         for link in links:
             if link not in self.url_index:
                 self.url_index[link] = set()
-            self.url_index[link].add(url)
+            # self.url_index[link].add(url)
+            self.url_index[link].add(url.rstrip("/"))
 
         # Index text
         for word in text.split():
             if word not in self.text_index:
                 self.text_index[word] = set()
-            self.text_index[word].add(url)
+            # self.text_index[word].add(url)
+            self.text_index[word].add(url.rstrip("/"))
