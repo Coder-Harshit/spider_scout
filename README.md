@@ -14,4 +14,4 @@ Parses the HTML content and extract the metadata, images, links etc. from the do
 Responsible for maintaining the inverted index of the retrieved/extracted data
 
 ### Scheduler Module
-`Manager`, coordinates the overall crwalling process and assigning tasks to various modules.
+Acts as `Manager`, coordinates the overall crwalling process and assigning tasks to various modules.
