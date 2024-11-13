@@ -20,8 +20,6 @@ class Scheduler:
 
                     self.indexer.index(url, text, links)
 
-                    #for debugging stoping here (unless depth limit has been implemented)
-                    # break
 
                     for link in links:
                         self.url_frontier.add_url(link)
