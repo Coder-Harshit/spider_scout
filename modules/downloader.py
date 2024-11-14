@@ -5,6 +5,7 @@ class Downloader:
     def __init__(self, user_agent, delay=1):
         self.user_agent = user_agent
         self.delay = delay
+        self.state = 'idle'
 
     def fetch(self, url, max_attempts=3):
         #######################################

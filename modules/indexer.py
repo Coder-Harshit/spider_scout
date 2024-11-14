@@ -1,10 +1,12 @@
+import asyncio
+
 class Indexer:
     def __init__(self):
         # dict for inverted index
         self.url_index = {}
         self.text_index = {}
 
-    def index(self, url, text, links):
+    async def index(self, url, text, links):
         #######################################
         # logging
         print(f"Indexing URL: {url}", file=open('spiderscout.log', 'a'))

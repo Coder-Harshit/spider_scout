@@ -2,6 +2,9 @@ from bs4 import BeautifulSoup
 import re
 
 class Parser:
+    def __init__(self):
+        self.state = 'idle'
+        
     def parse(self, html_content, root_url):
         #######################################
         # logging
