@@ -2,25 +2,31 @@ import time
 import asyncio
 import concurrent.futures
 
+from modules.robots_txt_handler import RobotsTxtHandler
+
 class Scheduler:
-    def __init__(self, url_frontier, downloaders, parsers, indexer):
+    def __init__(self, url_frontier, downloaders, parsers, indexer, user_agent):
         self.url_frontier = url_frontier
         self.downloaders = downloaders
         self.parsers = parsers
         self.indexer = indexer
+        self.robots_handler = RobotsTxtHandler(user_agent)
 
     def crawl(self, seed_url, depth=1):
-        start_time = time.time()
+        self.robots_handler.fetch_robots_txt(seed_url)
         
+        start_time = time.time()
+
         count = 0
         self.url_frontier.add_url(seed_url)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             while self.url_frontier.has_next() and count < depth:
                 url = self.url_frontier.get_next_url().rstrip("/")
-                futures.append(executor.submit(self.process_url, url))
                 
-                count+=1
+                if self.robots_handler.is_allowed(url):
+                    futures.append(executor.submit(self.process_url, url))
+                    count+=1
 
             for future in concurrent.futures.as_completed(futures):
                 try:
