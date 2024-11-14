@@ -2,7 +2,7 @@ from modules import frontier, parser, downloader, indexer, scheduler
 
 N: int = 3
 
-DOWNLOADER_POOL = [downloader.Downloader(user_agent='spider_scout') for _ in range(N)]
+DOWNLOADER_POOL = [downloader.Downloader(user_agent='spider_scout/1.0') for _ in range(N)]
 PARSER_POOL = [parser.Parser() for _ in range(N)]
 
 url_frontier = frontier.URLFrontier()
