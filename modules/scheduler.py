@@ -17,7 +17,6 @@ class Scheduler:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             while self.url_frontier.has_next() and count < depth:
-                # url = self.url_frontier.get_next_url()
                 url = self.url_frontier.get_next_url().rstrip("/")
                 futures.append(executor.submit(self.process_url, url))
                 
