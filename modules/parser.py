@@ -15,19 +15,14 @@ class Parser:
 
         textual_content = soup.get_text()
 
-        # links = []
         links = set()
         for link in soup.find_all('a'):
             # in all anchor tags
             href = link.get('href')
             if href:
                 if re.search("^http",href):
-                    # links.append(href)
-                    # links.add(href)
                     links.add(href.rstrip("/"))
                 else:
-                    # links.append(root_url+href)
-                    # links.add(root_url+href)
                     links.add((root_url+href).rstrip("/"))
         
         # metadata

@@ -6,10 +6,7 @@ DOWNLOADER_POOL = [downloader.Downloader(user_agent='spider_scout') for _ in ran
 PARSER_POOL = [parser.Parser() for _ in range(N)]
 
 url_frontier = frontier.URLFrontier()
-# downloader = downloader.Downloader(user_agent='spider_scout')
-# parser = parser.Parser()
 indexer = indexer.Indexer()
-# scheduler = scheduler.Scheduler(url_frontier, downloader, parser, indexer)
 scheduler = scheduler.Scheduler(url_frontier, DOWNLOADER_POOL, PARSER_POOL, indexer)
 
 scheduler.crawl("https://www.archwiki.org",depth=2)

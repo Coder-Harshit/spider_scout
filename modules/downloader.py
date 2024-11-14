@@ -10,7 +10,8 @@ class Downloader:
     def fetch(self, url, max_attempts=3):
         #######################################
         # logging
-        print(f"Fetching URL: {url}", file=open('spiderscout.log', 'a'))        #######################################
+        print(f"Fetching URL: {url}", file=open('spiderscout.log', 'a'))
+        #######################################
 
         headers = {'User-Agent':self.user_agent}
         for attempt in range(max_attempts):
