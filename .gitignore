@@ -1,4 +1,5 @@
 .env
+.vscode
 logs/
 
 modules/__pycache__

@@ -1,12 +1,43 @@
+import asyncio
+import queue
 from bs4 import BeautifulSoup
 import re
 import logging
+import threading
+import time
 
-class Parser:
+class Parser(threading.Thread):
     def __init__(self):
+        super().__init__()
         self.state = 'idle'
         self.logger = logging.getLogger(__name__)
+        self.indexer = None
+        self.task_queue = []
+        self.lock = threading.Lock()
         self.logger.debug("Initialized Parser")
+
+    def run(self):
+        while True:
+            try:
+                task = self.scheduler.parsers_queue.get(timeout=1)
+                if task:
+                    self.state = 'running'
+                    html_content, root_url = task
+                    # html_content, root_url, depth = task
+                    text, links, metadata = self.parse(html_content, root_url)
+                    self.state = 'idle'
+                    # Asynchronously index the parsed data
+                    # asyncio.run(self.indexer.index(root_url, text, links, metadata))
+                    asyncio.run(self.indexer.index(root_url, text, links))
+                    # Add new links to the frontier
+                    for link in links:
+                        self.scheduler.url_frontier.add_url(link)
+                        # self.scheduler.url_frontier.add_url(link, depth=depth+1)
+                else:
+                    time.sleep(0.1)
+            except queue.Empty:
+                time.sleep(0.1)
+
 
     def parse(self, html_content, root_url):
         try:
@@ -45,3 +76,7 @@ class Parser:
 
         except Exception as e:
             self.logger.error(f"Error parsing HTML content: {str(e)}", exc_info=True)
+
+    def add_task(self, html_content, root_url):
+        with self.lock:
+            self.task_queue.append((html_content, root_url))
