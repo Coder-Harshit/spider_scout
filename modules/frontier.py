@@ -9,13 +9,13 @@ class URLFrontier:
         self.logger.debug("Initialized URLFrontier")
 
     def add_url(self, url, priority=0):
-        try:
-            self.logger.info(f"Adding URL to frontier: {url}")
-            if url not in self.visited:
+        if url not in self.visited:
+            try:
+                self.logger.info(f"Adding URL to frontier: {url}")
                 self.frontier.put((priority,url))
                 self.visited.add(url)
-        except Exception as e:
-            self.logger.error(f"Error adding URL to frontier: {str(e)}", exc_info=True)
+            except Exception as e:
+                self.logger.error(f"Error adding URL to frontier: {str(e)}", exc_info=True)
                 
     def has_next(self):
         return not self.frontier.empty()

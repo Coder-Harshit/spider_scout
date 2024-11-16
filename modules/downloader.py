@@ -25,6 +25,6 @@ class Downloader:
                     self.logger.error(f"Error Fetching {url}: {str(err)}",exc_info=True)
                     # print(f"Error Fetching {url}: {err}")
                     time.sleep(self.delay * (2**attempt))
-                return None
+            return None
         except Exception as e:
             self.logger.error(f"Error fetching {url}: {str(e)}",exc_info=True)

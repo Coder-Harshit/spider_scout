@@ -11,22 +11,24 @@ class Scheduler:
         self.parsers = parsers
         self.indexer = indexer
         self.robots_handler = RobotsTxtHandler(user_agent)
+        self.current_depth = 0
 
     def crawl(self, seed_url, depth=1):
         self.robots_handler.fetch_robots_txt(seed_url)
         
         start_time = time.time()
 
-        count = 0
+        # count = 0
         self.url_frontier.add_url(seed_url)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
-            while self.url_frontier.has_next() and count < depth:
+            while self.url_frontier.has_next() and self.current_depth < depth:
                 url = self.url_frontier.get_next_url().rstrip("/")
                 
                 if self.robots_handler.is_allowed(url):
                     futures.append(executor.submit(self.process_url, url))
-                    count+=1
+                    # count+=1
+                    self.current_depth+=1
 
             for future in concurrent.futures.as_completed(futures):
                 try:
@@ -42,6 +44,7 @@ class Scheduler:
     def process_url(self, url):
         try:
             downloader = self.get_idle_downloader()
+            print(downloader)
             if downloader:
                 html_content = downloader.fetch(url)
                 downloader.state = 'idle'
