@@ -4,3 +4,4 @@ logs/
 
 modules/__pycache__
 *.pyc
+*.local
