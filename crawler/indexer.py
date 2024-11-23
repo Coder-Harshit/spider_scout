@@ -2,13 +2,18 @@ import logging
 import asyncio
 
 class Indexer:
+    '''TODO ... 
+    1. Stop words removal in text indexer
+    2. Limitization / Standarisation of words in text index
+    3. Correctly Formating urls in url index
+    '''
     def __init__(self):
         self.url_index = {}
         self.text_index = {}
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initialized Indexer")
 
-    async def index(self, url, text, links):
+    def index(self, url, text, links):
         try:
             self.logger.info(f"Indexing URL: {url}")
             # Index URLs

@@ -1,3 +1,4 @@
+from curses import meta
 import threading
 import logging
 import time
@@ -14,22 +15,22 @@ class Parser(threading.Thread):
         self.scheduler = None
         self.logger.debug("Initialized Parser")
 
-    def run(self):
-        while True:
-            try:
-                task = self.scheduler.parsers_queue.get(timeout=1)
-                if task:
-                    self.state = 'running'
-                    html_content, root_url = task
-                    text, links, metadata = self.parse(html_content, root_url)
-                    asyncio.run(self.indexer.index(root_url, text, links))
-                    for link in links:
-                        self.scheduler.url_frontier.add_url(link)
-                    self.state = 'idle'
-            except Exception as e:
-                self.logger.error(f"Error in parser run loop: {str(e)}")
-            finally:
-                time.sleep(0.1)
+#     def run(self):
+#         while True:
+#             try:
+#                 task = self.scheduler.parsers_queue.get(timeout=1)
+#                 if task:
+#                     self.state = 'running'
+#                     html_content, root_url = task
+#                     text, links, metadata = self.parse(html_content, root_url)
+#                     asyncio.run(self.indexer.index(root_url, text, links))
+#                     for link in links:
+#                         self.scheduler.url_frontier.add_url(link)
+#                     self.state = 'idle'
+#             except Exception as e:
+#                 self.logger.error(f"Error in parser run loop: {str(e)}")
+#             finally:
+#                 time.sleep(0.1)
 
     def parse(self, html_content, root_url):
         try:
