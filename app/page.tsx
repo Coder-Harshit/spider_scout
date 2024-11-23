@@ -37,7 +37,7 @@ export default function WebCrawler() {
     setCrawling(true)
     setProgress(0)
     setResults([])
-    
+
     try {
       const response = await fetch('/api/crawl', {
         method: 'POST',
@@ -56,21 +56,50 @@ export default function WebCrawler() {
         throw new Error('Unable to read response')
       }
 
+      // while (true) {
+      //   const { done, value } = await reader.read()
+      //   if (done) break
+
+      //   const chunk = new TextDecoder().decode(value)
+      //   const lines = chunk.split('\n').filter(Boolean)
+
+      //   lines.forEach(line => {
+      //     const data = JSON.parse(line)
+      //     if (data.type === 'progress') {
+      //       setProgress(data.value)
+      //     } else if (data.type === 'result') {
+      //       setResults(prev => [...prev, data.url])
+      //     }
+      //   })
+      let buffer = ''
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
         const chunk = new TextDecoder().decode(value)
-        const lines = chunk.split('\n').filter(Boolean)
+        buffer += chunk
 
-        lines.forEach(line => {
-          const data = JSON.parse(line)
-          if (data.type === 'progress') {
-            setProgress(data.value)
-          } else if (data.type === 'result') {
-            setResults(prev => [...prev, data.url])
+        let lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.trim() === '') {
+            // Skip empty lines
+            continue
           }
-        })
+          try {
+            const data = JSON.parse(line)
+            if (data.type === 'progress') {
+              setProgress(data.value)
+            } else if (data.type === 'result') {
+              setResults(prev => [...prev, data.url])
+            } else if (data.type === 'error') {
+              setError(data.message)
+            }
+          } catch (e) {
+            console.error('Error parsing line:', line)
+          }
+        }
       }
     } catch (error) {
       setError('An error occurred during crawling')

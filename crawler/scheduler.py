@@ -32,18 +32,18 @@ class Scheduler:
             for parser in self.parsers:
                 parser.start()
 
-            processed_urls = 0
-            total_urls = depth
+            self.processed_urls = 0
+            self.total_urls = depth
 
-            while processed_urls < depth and self.url_frontier.has_next():
+            while self.processed_urls < depth and self.url_frontier.has_next():
                 url = self.url_frontier.get_next_url()
                 if self.robots_txt_handler.is_allowed(url):
                     self.downloader_queue.put(url)
-                    processed_urls += 1
+                    self.processed_urls += 1
 
                     # Report progress
                     if self.progress_callback:
-                        self.progress_callback(processed_urls, total_urls)
+                        self.progress_callback(self.processed_urls, self.total_urls)
                     # Report result
                     if self.result_callback:
                         self.result_callback(url)
@@ -66,7 +66,7 @@ class Scheduler:
 
             # Ensure 100% progress is shown at completion
             if self.progress_callback:
-                self.progress_callback(total_urls, total_urls)
+                self.progress_callback(self.total_urls, self.total_urls)
 
         except Exception as e:
             self.logger.error(f"Error in crawler: {str(e)}", exc_info=True)

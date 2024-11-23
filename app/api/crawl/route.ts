@@ -5,6 +5,7 @@ export async function POST(req: NextRequest) {
   const { url, depth, respectRobotsTxt } = await req.json()
 
   const pythonProcess = spawn('python', [
+    '-u',
     'main.py',
     url,
     depth.toString(),
@@ -21,6 +22,7 @@ export async function POST(req: NextRequest) {
 
       pythonProcess.stderr.on('data', (data) => {
         console.error(`Python Error: ${data}`)
+        controller.enqueue(encoder.encode(JSON.stringify({ type: 'error', message: data.toString() }) + '\n'))
       })
 
       pythonProcess.on('close', (code) => {

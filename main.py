@@ -16,12 +16,16 @@ ROBOTS_TXT_HANDLER = RobotsTxtHandler(USER_AGENT)
 
 def print_progress(current, total):
     """Send crawling progress to frontend"""
-    progress = min(100, int((current / total) * 100))
+    progress = min(100, int((current / max(1,total)) * 100))
     print(json.dumps({"type": "progress", "value": progress}), flush=True)
 
 def print_result(url):
     """Send crawled URL result to frontend"""
     print(json.dumps({"type": "result", "url": url}), flush=True)
+
+# def print_error(message):
+#     print(json.dumps({"type": "error", "message": message}), flush=True)
+
 
 SCHEDULER = Scheduler(URL_FRONTIER, DOWNLOADER_POOL, PARSER_POOL, INDEXER, ROBOTS_TXT_HANDLER, progress_callback=print_progress, result_callback=print_result)
 
