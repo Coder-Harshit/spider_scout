@@ -23,5 +23,7 @@ class Indexer:
             # Index text
             for word in text.split():
                 self.text_index.setdefault(word, set()).add(url.rstrip("/"))
+
         except Exception as e:
             self.logger.error(f"Error indexing {url}: {str(e)}", exc_info=True)
+        
