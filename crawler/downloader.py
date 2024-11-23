@@ -45,6 +45,11 @@ class Downloader(threading.Thread):
                 self.logger.info(f"Attempt {attempt + 1} Fetching: {url}")
                 response = requests.get(url, headers=headers, timeout=10)
                 response.raise_for_status()
+
+                # Report successful fetch
+                if hasattr(self.scheduler, 'result_callback') and self.scheduler.result_callback:
+                    self.scheduler.result_callback(url)
+                                
                 self.scheduler.parsers_queue.put((response.text, url))
                 
                 # RESPONSE.TEXT => full html file code

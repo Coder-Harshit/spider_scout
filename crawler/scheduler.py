@@ -1,8 +1,9 @@
+import logging
 import time
 from queue import Queue
 
 class Scheduler:
-    def __init__(self, url_frontier, downloaders, parsers, indexer, robots_txt_handler):
+    def __init__(self, url_frontier, downloaders, parsers, indexer, robots_txt_handler, progress_callback=None, result_callback=None):
         self.url_frontier = url_frontier
         self.downloaders = downloaders
         self.parsers = parsers
@@ -10,7 +11,10 @@ class Scheduler:
         self.robots_txt_handler = robots_txt_handler
         self.downloader_queue = Queue()
         self.parsers_queue = Queue()
-
+        self.progress_callback = progress_callback
+        self.result_callback = result_callback
+        self.logger = logging.getLogger(__name__)
+        
         for downloader in self.downloaders:
             downloader.scheduler = self
         for parser in self.parsers:
@@ -29,11 +33,20 @@ class Scheduler:
                 parser.start()
 
             processed_urls = 0
+            total_urls = depth
+
             while processed_urls < depth and self.url_frontier.has_next():
                 url = self.url_frontier.get_next_url()
                 if self.robots_txt_handler.is_allowed(url):
                     self.downloader_queue.put(url)
                     processed_urls += 1
+
+                    # Report progress
+                    if self.progress_callback:
+                        self.progress_callback(processed_urls, total_urls)
+                    # Report result
+                    if self.result_callback:
+                        self.result_callback(url)
 
             # Wait for queues to be processed
             self.downloader_queue.join()
@@ -50,6 +63,10 @@ class Scheduler:
                 downloader.join()
             for parser in self.parsers:
                 parser.join()
+
+            # Ensure 100% progress is shown at completion
+            if self.progress_callback:
+                self.progress_callback(total_urls, total_urls)
 
         except Exception as e:
             self.logger.error(f"Error in crawler: {str(e)}", exc_info=True)
