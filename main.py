@@ -1,30 +1,67 @@
-from modules import frontier, parser, downloader, indexer, scheduler
-from modules.logger_config import setup_logger
-import asyncio
+import sys
+import json
+from crawler.frontier import URLFrontier
+from crawler.downloader import Downloader
+from crawler.parser import Parser
+from crawler.indexer import Indexer
+from crawler.scheduler import Scheduler
+from crawler.robots_txt_handler import RobotsTxtHandler
+import crawler.logger_config
 
+# Setup logger
+logger = crawler.logger_config.setup_logger()
 
-logger = setup_logger()
-logger.info("Starting Spider Scout crawler")
+# Configuration
+N = 5  # Number of downloader and parser threads
+USER_AGENT = "spider_scout/1.0 (+mailto:your_email@example.com)"
 
+# Initialize components
+URL_FRONTIER = URLFrontier()
+DOWNLOADER_POOL = [Downloader(USER_AGENT) for _ in range(N)]
+PARSER_POOL = [Parser() for _ in range(N)]
+INDEXER = Indexer()
+ROBOTS_TXT_HANDLER = RobotsTxtHandler(USER_AGENT)
 
-N: int = 5
-USER_AGENT: str = 'spider_scout/1.0 (+mailto:21803015@mail.jiit.ac.in)' 
-DOWNLOADER_POOL = [downloader.Downloader(user_agent=USER_AGENT) for _ in range(N)]
-PARSER_POOL = [parser.Parser() for _ in range(N)]
+# Print progress callback
+def print_progress(current, total):
+    """Send crawling progress to frontend"""
+    progress = min(100, int((current / max(1, total)) * 100))
+    print(json.dumps({"type": "progress", "value": progress}), flush=True)
 
+# Print crawled result callback
+def print_result(url):
+    """Send crawled URL result to frontend"""
+    print(json.dumps({"type": "result", "url": url}), flush=True)
 
-url_frontier = frontier.URLFrontier()
-indexer = indexer.Indexer()
-scheduler = scheduler.Scheduler(url_frontier, DOWNLOADER_POOL, PARSER_POOL, indexer, USER_AGENT)
+# Scheduler initialization
+SCHEDULER = Scheduler(
+    URL_FRONTIER,
+    DOWNLOADER_POOL,
+    PARSER_POOL,
+    INDEXER,
+    ROBOTS_TXT_HANDLER,
+    progress_callback=print_progress,
+    result_callback=print_result
+)
+# Set the scheduler attribute for each downloader and parser
+for downloader in DOWNLOADER_POOL:
+    downloader.scheduler = SCHEDULER
 
-scheduler.crawl("https://www.archwiki.org",depth=1)
-# scheduler.crawl("https://en.wikipedia.org/wiki/Jaypee_Institute_of_Information_Technology",depth=1)
+for parser in PARSER_POOL:
+    parser.scheduler = SCHEDULER
+    parser.indexer = INDEXER
 
-# print("\n------TEXT_INDEX------")
-# for (key,value) in indexer.text_index.items():
-#     print(key, " : ", value)
+# Main program entry point
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Usage: python main.py <url> <depth> <respect_robots_txt>")
+        sys.exit(1)
 
+    # Command line arguments
+    seed_url = sys.argv[1]
+    depth = int(sys.argv[2])
+    respect_robots_txt = sys.argv[3] == '1'
 
-# print("\n\n\n------URL_INDEX------")
-# for (key,value) in indexer.url_index.items():
-#     print(key, " : ", value)
+    # Start crawling
+    logger.info(f"Starting crawl for {seed_url} with depth {depth}, respect robots.txt: {respect_robots_txt}")
+    SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt)
