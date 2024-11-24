@@ -24,14 +24,20 @@ class URLFrontier:
     #         self.visited.add(url)
     #         self.logger.info(f"Added URL to frontier: {url}")
 
-    def add_url(self, url, priority=0):
+    def add_url(self, url, depth, priority=0):
         try:
             parsed_url = urlparse(url)
             if parsed_url.scheme and parsed_url.netloc:
                 normalized_url = url.rstrip('/')
                 with self.lock:
                     if normalized_url not in self.visited:
-                        self.frontier.put((priority, normalized_url))
+                        
+                        # FOR BFS TRAVERSAL
+                        ## When adding URLs to the frontier
+                        # priority = depth  # Lower depth gets higher priority (processed earlier)
+                        # self.frontier.put((priority, depth, url))
+                        
+                        self.frontier.put((priority, depth, normalized_url))
                         self.visited.add(normalized_url)
                         # self.logger.info(f"Added URL: {normalized_url}")
         except Exception as e:
@@ -48,8 +54,8 @@ class URLFrontier:
     def get_next_url(self):
         with self.lock:
             if not self.frontier.empty():
-                _, url = self.frontier.get()
+                _,depth, url = self.frontier.get()
                 # self.visited.add(url)
-                return url
+                return url, depth
             else:
-                return None
+                return None, None
