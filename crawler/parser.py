@@ -26,7 +26,7 @@ class Parser(threading.Thread):
                     # 
                     break
                 self.state = 'running'
-                html_content, root_url = task
+                html_content, root_url, current_depth = task
                 text, links, metadata = self.parse(html_content, root_url)
                 # loop = asyncio.new_event_loop()
                 # asyncio.set_event_loop(loop)
@@ -35,7 +35,7 @@ class Parser(threading.Thread):
 
                 # adding it to frontier:
                 for link in links:
-                    self.scheduler.url_frontier.add_url(link)
+                    self.scheduler.url_frontier.add_url(link, current_depth+1)
                     
                 self.scheduler.url_frontier.display()
 

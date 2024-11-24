@@ -28,10 +28,10 @@ class Downloader(threading.Thread):
                     break
 
                 self.state = 'running'
-                url = task
+                url, depth = task
                 html_content = self.fetch(url)
                 if html_content:
-                    self.scheduler.parsers_queue.put((html_content, url))  # Forwarding the html content to the parser queue
+                    self.scheduler.parsers_queue.put((html_content, url, depth))  # Forwarding the html content to the parser queue
                 self.state = 'idle'
                 
                 self.scheduler.downloader_queue.task_done()  # Mark the task as done

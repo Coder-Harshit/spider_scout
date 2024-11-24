@@ -93,7 +93,7 @@ class Scheduler:
         try:
             # Initialize crawling
             self.logger.info("Starting crawl...")
-            self.url_frontier.add_url(seed_url)
+            self.url_frontier.add_url(seed_url, depth=0)
             if respect_robots_txt:
                 self.robots_txt_handler.fetch_robots_txt(seed_url)
 
@@ -101,33 +101,31 @@ class Scheduler:
             for worker in self.downloaders + self.parsers:
                 worker.start()
 
-            total_urls = 1  # Start with the seed URL
-            processed_urls = 0
+            # total_urls = 1  # Start with the seed URL
+            # processed_urls = 0
 
             while True:
-                # Check if max depth reached
-                if processed_urls >= max_depth:
-                    break
+                # # Check if max depth reached
+                # if processed_urls >= max_depth:
+                #     break
 
                 # Try to get next URL from frontier
-                url = self.url_frontier.get_next_url()
-                if url:
+                url, depth = self.url_frontier.get_next_url()
+                if url is not None and depth is not None:
+                    if depth > max_depth:
+                        continue  # Skip URLs beyond max depth
                     if (not respect_robots_txt) or (self.robots_txt_handler.is_allowed(url)):
-                        self.downloader_queue.put(url)
-                    processed_urls += 1
-
+                        self.downloader_queue.put((url, depth))  # Pass depth to downloader
                     if self.progress_callback:
-                        self.progress_callback(processed_urls, total_urls)
+                        self.progress_callback(depth, max_depth)
                 else:
-                    # No URLs in frontier, but queues might not be empty
+                    # No URLs left to process
                     if self.downloader_queue.empty() and self.parsers_queue.empty():
-                        # Check if all threads are idle
                         all_idle = all(downloader.state == 'idle' for downloader in self.downloaders) and \
-                                all(parser.state == 'idle' for parser in self.parsers)
+                                   all(parser.state == 'idle' for parser in self.parsers)
                         if all_idle:
                             break
                     else:
-                        # Wait for new URLs to be added to the frontier
                         time.sleep(1)
 
             # Signal termination
@@ -139,10 +137,7 @@ class Scheduler:
             for worker in self.downloaders + self.parsers:
                 worker.join()
 
-            if self.progress_callback:
-                self.progress_callback(processed_urls, processed_urls)
+            self.logger.info("Crawl completed.")
 
         except Exception as e:
             self.logger.error(f"Crawl failed: {e}", exc_info=True)
-        finally:
-            self.logger.info("Crawl completed.")
