@@ -11,6 +11,13 @@ class URLFrontier:
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initialized URLFrontier")
 
+    def display(self):
+        print("VISITED:\n", self.visited)
+        print("FRONTIER:")
+        with self.lock:
+            frontier_list = list(self.frontier.queue)
+            for item in frontier_list:
+                print(item)
     # def add_url(self, url, priority=0):
     #     if url not in self.visited:
     #         self.frontier.put((priority, url))
@@ -26,9 +33,13 @@ class URLFrontier:
                     if normalized_url not in self.visited:
                         self.frontier.put((priority, normalized_url))
                         self.visited.add(normalized_url)
-                        self.logger.info(f"Added URL: {normalized_url}")
+                        # self.logger.info(f"Added URL: {normalized_url}")
         except Exception as e:
             self.logger.error(f"Error adding URL to frontier: {str(e)}")
+    
+    def is_empty(self):
+        with self.lock:
+            return self.frontier.empty()
 
     def has_next(self):
         with self.lock:
@@ -38,6 +49,7 @@ class URLFrontier:
         with self.lock:
             if not self.frontier.empty():
                 _, url = self.frontier.get()
+                # self.visited.add(url)
                 return url
             else:
                 return None

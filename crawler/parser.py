@@ -8,12 +8,12 @@ import re
 import asyncio
 
 class Parser(threading.Thread):
-    def __init__(self):
+    def __init__(self, scheduler=None, indexer=None):
         super().__init__()
         self.state = 'idle'
         self.logger = logging.getLogger(__name__)
-        self.indexer = None
-        self.scheduler = None
+        self.indexer = indexer
+        self.scheduler = scheduler
         self.logger.debug("Initialized Parser")
 
     def run(self):
@@ -21,6 +21,9 @@ class Parser(threading.Thread):
             try:
                 task = self.scheduler.parsers_queue.get(timeout=1)
                 if task is None:
+                    # 
+                    self.scheduler.parsers_queue.task_done()
+                    # 
                     break
                 self.state = 'running'
                 html_content, root_url = task
@@ -29,14 +32,19 @@ class Parser(threading.Thread):
                 # asyncio.set_event_loop(loop)
                 # loop.run_until_complete(self.indexer.index(root_url, text, links))
                 # loop.close()
-                
+
+                # adding it to frontier:
+                for link in links:
+                    self.scheduler.url_frontier.add_url(link)
+                    
+                self.scheduler.url_frontier.display()
+
                 # Synchronous indexing instead of async
                 self.indexer.index(root_url, text, links)
                 
-                for link in links:
-                    self.scheduler.url_frontier.add_url(link)
+                # for link in links:
+                #     self.scheduler.url_frontier.add_url(link)
                 self.state = 'idle'
-
                 # Mark task as done
                 self.scheduler.parsers_queue.task_done()
                 
@@ -66,6 +74,7 @@ class Parser(threading.Thread):
                 parsed_url = urlparse(absolute_url)
                 normalized_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
                 links.add(normalized_url)
+            
 
             metadata = {
                 "title": soup.title.text if soup.title else None,

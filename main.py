@@ -6,45 +6,62 @@ from crawler.parser import Parser
 from crawler.indexer import Indexer
 from crawler.scheduler import Scheduler
 from crawler.robots_txt_handler import RobotsTxtHandler
+import crawler.logger_config
 
+# Setup logger
+logger = crawler.logger_config.setup_logger()
+
+# Configuration
+N = 5  # Number of downloader and parser threads
 USER_AGENT = "spider_scout/1.0 (+mailto:your_email@example.com)"
-DOWNLOADER_POOL = [Downloader(USER_AGENT) for _ in range(5)]
-PARSER_POOL = [Parser() for _ in range(5)]
+
+# Initialize components
 URL_FRONTIER = URLFrontier()
+DOWNLOADER_POOL = [Downloader(USER_AGENT) for _ in range(N)]
+PARSER_POOL = [Parser() for _ in range(N)]
 INDEXER = Indexer()
 ROBOTS_TXT_HANDLER = RobotsTxtHandler(USER_AGENT)
 
+# Print progress callback
 def print_progress(current, total):
     """Send crawling progress to frontend"""
-    progress = min(100, int((current / max(1,total)) * 100))
+    progress = min(100, int((current / max(1, total)) * 100))
     print(json.dumps({"type": "progress", "value": progress}), flush=True)
 
+# Print crawled result callback
 def print_result(url):
     """Send crawled URL result to frontend"""
     print(json.dumps({"type": "result", "url": url}), flush=True)
 
-# def print_error(message):
-#     print(json.dumps({"type": "error", "message": message}), flush=True)
+# Scheduler initialization
+SCHEDULER = Scheduler(
+    URL_FRONTIER,
+    DOWNLOADER_POOL,
+    PARSER_POOL,
+    INDEXER,
+    ROBOTS_TXT_HANDLER,
+    progress_callback=print_progress,
+    result_callback=print_result
+)
+# Set the scheduler attribute for each downloader and parser
+for downloader in DOWNLOADER_POOL:
+    downloader.scheduler = SCHEDULER
 
+for parser in PARSER_POOL:
+    parser.scheduler = SCHEDULER
+    parser.indexer = INDEXER
 
-SCHEDULER = Scheduler(URL_FRONTIER, DOWNLOADER_POOL, PARSER_POOL, INDEXER, ROBOTS_TXT_HANDLER, progress_callback=print_progress, result_callback=print_result)
-
+# Main program entry point
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         print("Usage: python main.py <url> <depth> <respect_robots_txt>")
         sys.exit(1)
 
+    # Command line arguments
     seed_url = sys.argv[1]
     depth = int(sys.argv[2])
     respect_robots_txt = sys.argv[3] == '1'
-    SCHEDULER.crawl(seed_url, depth=depth)
-    # # SCHEDULER.crawl(seed_url, depth, respect_robots_txt, progress_callback=print_progress, result_callback=print_result)
-    # URL_FRONTIER.add_url(seed_url)
-    # while URL_FRONTIER.has_next():
-    #     nxt_url = URL_FRONTIER.get_next_url() 
-    #     x = DOWNLOADER_POOL[0].fetch(nxt_url)
-    #     txt,links,metadata = PARSER_POOL[0].parse(x,nxt_url)
-    #     INDEXER.index(nxt_url,txt,links)
-    # for i in INDEXER.text_index:
-    #     print(i)
-    #     # print(INDEXER.url_index)
+
+    # Start crawling
+    logger.info(f"Starting crawl for {seed_url} with depth {depth}, respect robots.txt: {respect_robots_txt}")
+    SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt)

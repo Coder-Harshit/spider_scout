@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from venv import logger
 
 class Indexer:
     '''TODO ... 
@@ -23,7 +24,7 @@ class Indexer:
             # Index text
             for word in text.split():
                 self.text_index.setdefault(word, set()).add(url.rstrip("/"))
-
+            # self.logger.info(self.text_index)
         except Exception as e:
             self.logger.error(f"Error indexing {url}: {str(e)}", exc_info=True)
         
