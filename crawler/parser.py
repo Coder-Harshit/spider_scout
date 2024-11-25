@@ -6,6 +6,7 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import re
 import asyncio
+from crawler.util import normalize_url
 
 class Parser(threading.Thread):
     def __init__(self, scheduler=None, indexer=None):
@@ -61,6 +62,7 @@ class Parser(threading.Thread):
             self.logger.info(f"Parsing HTML content from {root_url}")
             soup = BeautifulSoup(html_content, 'html.parser')
             textual_content = soup.get_text()
+            
             # links = {
             #     (root_url + href).rstrip("/")
             #     if not href.startswith("http") else href.rstrip("/")
@@ -70,9 +72,10 @@ class Parser(threading.Thread):
             for link_tag in soup.find_all('a', href=True):
                 href = link_tag['href']
                 # Normalize the URL
-                absolute_url = urljoin(root_url, href)
-                parsed_url = urlparse(absolute_url)
-                normalized_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
+                # absolute_url = urljoin(root_url, href)
+                # parsed_url = urlparse(absolute_url)
+                # normalized_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
+                normalized_url = normalize_url(root_url, href)
                 links.add(normalized_url)
             
 
@@ -82,6 +85,7 @@ class Parser(threading.Thread):
             }
 
             return textual_content, links, metadata
+        
         except Exception as e:
             self.logger.error(f"Error parsing HTML content: {str(e)}", exc_info=True)
             return "", set(), {}

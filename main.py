@@ -1,10 +1,11 @@
 import sys
 import json
+import asyncio
 from crawler.frontier import URLFrontier
 from crawler.downloader import Downloader
 from crawler.parser import Parser
 from crawler.indexer import Indexer
-from crawler.scheduler import Scheduler
+from crawler.scheduler import AsyncScheduler  # Use an asynchronous scheduler
 from crawler.robots_txt_handler import RobotsTxtHandler
 import crawler.logger_config
 
@@ -12,7 +13,7 @@ import crawler.logger_config
 logger = crawler.logger_config.setup_logger()
 
 # Configuration
-N = 5  # Number of downloader and parser threads
+N = 5
 USER_AGENT = "spider_scout/1.0 (+mailto:your_email@example.com)"
 
 # Initialize components
@@ -31,10 +32,12 @@ def print_progress(current, total):
 # Print crawled result callback
 def print_result(url):
     """Send crawled URL result to frontend"""
-    print(json.dumps({"type": "result", "url": url}), flush=True)
+    normalized_url = INDEXER.normalize_url(url)
+    links = INDEXER.url_index.get(normalized_url, set())
+    print(json.dumps({"type": "result", "url": normalized_url, "links": list(links)}), flush=True)
 
 # Scheduler initialization
-SCHEDULER = Scheduler(
+SCHEDULER = AsyncScheduler(
     URL_FRONTIER,
     DOWNLOADER_POOL,
     PARSER_POOL,
@@ -43,6 +46,7 @@ SCHEDULER = Scheduler(
     progress_callback=print_progress,
     result_callback=print_result
 )
+
 # Set the scheduler attribute for each downloader and parser
 for downloader in DOWNLOADER_POOL:
     downloader.scheduler = SCHEDULER
@@ -64,4 +68,8 @@ if __name__ == "__main__":
 
     # Start crawling
     logger.info(f"Starting crawl for {seed_url} with depth {depth}, respect robots.txt: {respect_robots_txt}")
-    SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt)
+    asyncio.run(SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt))
+
+    # After crawling is complete, output the URL relationships
+    graph_data = [{"url": url, "links": list(links)} for url, links in INDEXER.url_index.items()]
+    print(json.dumps({"type": "graph", "data": graph_data}), flush=True)

@@ -1,6 +1,5 @@
 'use client'
-
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
@@ -21,7 +20,9 @@ export default function WebCrawler() {
   const [crawling, setCrawling] = useState(false)
   const [progress, setProgress] = useState(0)
   const [results, setResults] = useState<string[]>([])
+  const [graphData, setGraphData] = useState<{ url: string; links: string[] }[]>([])
   const [error, setError] = useState('')
+  const [isError, setIsError] = useState(false)  // New state for error display
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
@@ -31,9 +32,11 @@ export default function WebCrawler() {
   const startCrawl = async () => {
     if (!url) {
       setError('Please enter a valid URL')
+      setIsError(true)  // Display the error
       return
     }
     setError('')
+    setIsError(false)
     setCrawling(true)
     setProgress(0)
     setResults([])
@@ -72,6 +75,8 @@ export default function WebCrawler() {
       //     }
       //   })
       let buffer = ''
+      let completeGraphData = []
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -93,6 +98,8 @@ export default function WebCrawler() {
               setProgress(data.value)
             } else if (data.type === 'result') {
               setResults(prev => [...prev, data.url])
+            } else if (data.type === 'graph') {
+              completeGraphData = data.data
             } else if (data.type === 'error') {
               setError(data.message)
             }
@@ -101,13 +108,31 @@ export default function WebCrawler() {
           }
         }
       }
+      setGraphData(completeGraphData)
+      setCrawling(false)
     } catch (error) {
       setError('An error occurred during crawling')
+      setIsError(true)  // Display the error
     } finally {
       setCrawling(false)
     }
   }
 
+  useEffect(() => {
+    if (isError) {
+      // Simulate a timeout to clear the error after a few seconds
+      const timeoutId = setTimeout(() => {
+        setError('')
+        setIsError(false)
+      }, 5000);
+
+      // Clear the timeout if the component unmounts
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [isError]);
+  
   return (
     <div className={`min-h-screen p-8 transition-colors duration-300 ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       <div className="max-w-4xl mx-auto">
@@ -166,7 +191,7 @@ export default function WebCrawler() {
               </label>
             </div>
 
-            {error && (
+            {isError && (  // Display the error message
               <div className="flex items-center space-x-2 text-red-500 mb-4" role="alert">
                 <AlertCircle className="h-4 w-4" />
                 <span>{error}</span>
@@ -201,4 +226,3 @@ export default function WebCrawler() {
     </div>
   )
 }
-

@@ -1,13 +1,15 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import ForceGraph2D from 'react-force-graph-2d'
+import { useTheme } from 'next-themes'
 
 interface CrawlVisualizerProps {
   results: string[]
 }
 
-export function CrawlVisualizer({ results }: { results: string[] }) {
-  const graphRef = useRef<any>(null)
+export function CrawlVisualizer({ results }: CrawlVisualizerProps) {
+  const graphRef = useRef<any>(null);
+  const { theme } = useTheme();  // Get the current theme (light or dark)
 
   useEffect(() => {
     if (graphRef.current) {
@@ -40,12 +42,13 @@ export function CrawlVisualizer({ results }: { results: string[] }) {
             nodeRelSize={6}
             linkDirectionalParticles={2}
             linkDirectionalParticleSpeed={0.005}
-            backgroundColor="#ffffff"
+            backgroundColor={theme === 'light' ? '#ffffff' : '#333333'}  // Set background based on theme
             linkColor={() => "#999"}
+            onNodeHover={node => console.log('Hovered node:', node)}  // Add hover event for debugging
+            onNodeClick={node => console.log('Clicked node:', node)}    // Add click event for debugging
           />
         </div>
       </CardContent>
     </Card>
   )
 }
-
