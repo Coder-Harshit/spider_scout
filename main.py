@@ -13,7 +13,7 @@ logger = crawler.logger_config.setup_logger()
 
 # Configuration
 N = 5
-USER_AGENT = "spider_scout/1.0 (+mailto:your_email@example.com)"
+USER_AGENT = "spider_scout/1.0 (+mailto:21803015@mail.jiit.ac.in)"
 
 # Initialize components
 URL_FRONTIER = URLFrontier()
