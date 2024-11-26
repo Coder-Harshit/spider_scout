@@ -44,8 +44,12 @@ export function CrawlVisualizer({ results }: CrawlVisualizerProps) {
             linkDirectionalParticleSpeed={0.005}
             backgroundColor={theme === 'light' ? '#ffffff' : '#333333'}  // Set background based on theme
             linkColor={() => "#999"}
-            onNodeHover={node => console.log('Hovered node:', node)}  // Add hover event for debugging
-            onNodeClick={node => console.log('Clicked node:', node)}    // Add click event for debugging
+            onNodeHover={(node) => {
+              if (node) console.log('Hovered node:', node);
+            }}
+            onNodeClick={(node) => {
+              if (node) console.log('Clicked node:', node);
+            }}
           />
         </div>
       </CardContent>

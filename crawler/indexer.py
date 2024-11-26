@@ -76,11 +76,11 @@ class Indexer:
         Displays the URL index and text index.
         '''
         if url_index:
-            print("URL Index:")
+            print("URL Index:", flush=True)
             for url, links in self.url_index.items():
-                print(f"{url}: {links}")
+                print(f"{url}: {links}", flush=True)
         
         if text_index:
-            print("\nText Index:")
+            print("\nText Index:", flush=True)
             for word, urls in self.text_index.items():
-                print(f"{word}: {urls}")
+                print(f"{word}: {urls}", flush=True)

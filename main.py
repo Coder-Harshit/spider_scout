@@ -7,10 +7,10 @@ from crawler.parser import Parser
 from crawler.indexer import Indexer
 from crawler.scheduler import Scheduler
 from crawler.robots_txt_handler import RobotsTxtHandler
-import crawler.logger_config
+from crawler.logger_config import setup_logger
 
 # Setup logger
-logger = crawler.logger_config.setup_logger()
+logger = setup_logger()
 
 # Configuration
 N = 5
@@ -27,15 +27,18 @@ def print_graph():
     graph_data = [{"url": url, "links": list(links)} for url, links in INDEXER.url_index.items()]
     print(json.dumps({"type": "graph", "data": graph_data}), flush=True)
 
-# Print progress callback
 def print_progress(current, total):
     """Send crawling progress to frontend"""
-    progress = min(100, int((current+1 / max(1, total)) * 100))
+    progress = min(100, int(((current + 1) / max(1, total)) * 100))
     print(json.dumps({"type": "progress", "value": progress}), flush=True)
 
-# Print crawled result callback
-def print_result(url):
-    """Send crawled URL result to frontend"""
+def print_result(url=None):
+    """Send crawled URL result to the frontend."""
+    if url is None:
+        completion_data = {"type": "completion", "message": "Crawling process completed."}
+        print(json.dumps(completion_data), flush=True)
+        return
+
     normalized_url = INDEXER.normalize_url(url)
     links = INDEXER.url_index.get(normalized_url, set())
     result_data = {
@@ -45,19 +48,19 @@ def print_result(url):
     }
     print(json.dumps(result_data), flush=True)
 
-# Function to initialize the crawling process
 def start_crawling(seed_url, depth, respect_robots_txt):
-    logger.info(f"Starting crawl for {seed_url} with depth {depth}, respect robots.txt: {respect_robots_txt}")
-    SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt)
+    try:
+        logger.info(f"Starting crawl: URL={seed_url}, Depth={depth}, Respect robots.txt={respect_robots_txt}")
+        SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt)
+    except Exception as e:
+        logger.error(f"Error during crawling: {str(e)}")
+        print(json.dumps({"type": "error", "message": str(e)}), flush=True)
+    finally:
+        print_result()
 
-# Function to display the indexes
-def display_indexes():
-    INDEXER.display_indexes()
-
-# Function to handle command line arguments
 def handle_arguments():
     if len(sys.argv) != 4:
-        print("Usage: python main.py <url> <depth> <respect_robots_txt>")
+        print("Usage: python main.py <url> <depth> <respect_robots_txt>", flush=True)
         sys.exit(1)
 
     seed_url = sys.argv[1]
@@ -65,18 +68,15 @@ def handle_arguments():
     respect_robots_txt = sys.argv[3] == '1'
     return seed_url, depth, respect_robots_txt
 
-# Scheduler initialization
 SCHEDULER = Scheduler(
     URL_FRONTIER,
     DOWNLOADER_POOL,
     PARSER_POOL,
     INDEXER,
     ROBOTS_TXT_HANDLER,
-    # progress_callback=print_progress,
     result_callback=print_result
 )
 
-# Set the scheduler attribute for each downloader and parser
 for downloader in DOWNLOADER_POOL:
     downloader.scheduler = SCHEDULER
 
@@ -84,10 +84,6 @@ for parser in PARSER_POOL:
     parser.scheduler = SCHEDULER
     parser.indexer = INDEXER
 
-
-# Main program entry point
 if __name__ == "__main__":
     seed_url, depth, respect_robots_txt = handle_arguments()
     start_crawling(seed_url, depth, respect_robots_txt)
-    print_result()
-    # display_indexes()

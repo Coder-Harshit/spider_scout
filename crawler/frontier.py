@@ -12,12 +12,12 @@ class URLFrontier:
         self.logger.debug("Initialized URLFrontier")
 
     def display(self):
-        print("VISITED:\n", self.visited)
-        print("FRONTIER:")
+        print("VISITED:\n", self.visited, flush=True)
+        print("FRONTIER:", flush=True)
         with self.lock:
             frontier_list = list(self.frontier.queue)
             for item in frontier_list:
-                print(item)
+                print(item, flush=True)
 
     def add_url(self, url, depth, priority=0):
         try:

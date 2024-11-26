@@ -15,7 +15,7 @@ import { CrawlVisualizer } from '@/components/crawl-visualizer'
 export default function WebCrawler() {
   const [darkMode, setDarkMode] = useState(false)
   const [url, setUrl] = useState('')
-  const [depth, setDepth] = useState(1)
+  const [depth, setDepth] = useState(0)
   const [respectRobotsTxt, setRespectRobotsTxt] = useState(true)
   const [crawling, setCrawling] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -54,7 +54,11 @@ export default function WebCrawler() {
         throw new Error('Crawl request failed')
       }
 
-      const reader = response.body?.getReader()
+      if (!response.body) {
+        throw new Error('No response body');
+      }
+
+      const reader = response.body.getReader()
       if (!reader) {
         throw new Error('Unable to read response')
       }
@@ -102,6 +106,7 @@ export default function WebCrawler() {
               completeGraphData = data.data
             } else if (data.type === 'error') {
               setError(data.message)
+              setIsError(true)  // Display the error
             }
           } catch (e) {
             console.error('Error parsing line:', line)
@@ -171,7 +176,8 @@ export default function WebCrawler() {
               <label className="flex items-center space-x-2">
                 <span>Crawl Depth:</span>
                 <Slider
-                  min={1}
+                  // min={1}
+                  min={0}
                   max={10}
                   step={1}
                   value={[depth]}
