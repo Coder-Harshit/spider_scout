@@ -1,7 +1,5 @@
 import logging
-import asyncio
 from urllib.parse import urlparse, urlunparse
-from venv import logger
 
 class Indexer:
     '''TODO ... 
@@ -15,25 +13,9 @@ class Indexer:
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initialized Indexer")
 
-    # def index(self, url, text, links):
-    #     try:
-    #         self.logger.info(f"Indexing URL: {url}")
-    #         normalized_url = url.rstrip("/")
-
-    #         # Index URLs (store the relationships)
-    #         self.url_index[normalized_url] = links
-
-    #         # Index text
-    #         for word in text.split():
-    #             self.text_index.setdefault(word, set()).add(url.rstrip("/"))
-    #         # self.logger.info(self.text_index)
-    #     except Exception as e:
-    #         self.logger.error(f"Error indexing {url}: {str(e)}", exc_info=True)
-
     def normalize_url(self, url):
         parsed_url = urlparse(url)
-        # Implement your URL normalization logic here
-        # For example, you can remove query parameters, fragments, etc.
+        # Example, removing query parameters, fragments, etc.
         normalized_url = urlunparse(parsed_url._replace(query=None, fragment=None))
         return normalized_url
 

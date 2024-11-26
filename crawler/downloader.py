@@ -3,8 +3,6 @@ import queue
 import time
 import requests
 import threading
-from queue import Queue
-from urllib.parse import urlparse
 
 
 class Downloader(threading.Thread):

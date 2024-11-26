@@ -1,11 +1,10 @@
 import sys
 import json
-import asyncio
 from crawler.frontier import URLFrontier
 from crawler.downloader import Downloader
 from crawler.parser import Parser
 from crawler.indexer import Indexer
-from crawler.scheduler import AsyncScheduler  # Use an asynchronous scheduler
+from crawler.scheduler import Scheduler as AsyncScheduler
 from crawler.robots_txt_handler import RobotsTxtHandler
 import crawler.logger_config
 
@@ -68,8 +67,9 @@ if __name__ == "__main__":
 
     # Start crawling
     logger.info(f"Starting crawl for {seed_url} with depth {depth}, respect robots.txt: {respect_robots_txt}")
-    asyncio.run(SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt))
-
+    # asyncio.run(SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt))
+    SCHEDULER.crawl(seed_url, max_depth=depth, respect_robots_txt=respect_robots_txt)
+    
     # After crawling is complete, output the URL relationships
     graph_data = [{"url": url, "links": list(links)} for url, links in INDEXER.url_index.items()]
     print(json.dumps({"type": "graph", "data": graph_data}), flush=True)

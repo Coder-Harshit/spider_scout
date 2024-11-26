@@ -1,11 +1,7 @@
 import queue
 import threading
 import logging
-import time
-from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
-import re
-import asyncio
 from crawler.util import normalize_url
 
 class Parser(threading.Thread):
@@ -29,10 +25,6 @@ class Parser(threading.Thread):
                 self.state = 'running'
                 html_content, root_url, current_depth = task
                 text, links, metadata = self.parse(html_content, root_url)
-                # loop = asyncio.new_event_loop()
-                # asyncio.set_event_loop(loop)
-                # loop.run_until_complete(self.indexer.index(root_url, text, links))
-                # loop.close()
 
                 # adding it to frontier:
                 for link in links:
@@ -42,10 +34,8 @@ class Parser(threading.Thread):
 
                 # Synchronous indexing instead of async
                 self.indexer.index(root_url, text, links)
-                
-                # for link in links:
-                #     self.scheduler.url_frontier.add_url(link)
                 self.state = 'idle'
+
                 # Mark task as done
                 self.scheduler.parsers_queue.task_done()
                 
@@ -53,32 +43,21 @@ class Parser(threading.Thread):
                 continue # Don't break, keep waiting for tasks
             except Exception as e:
                 self.logger.error(f"Error in parser run loop: {str(e)}")
-            # finally:
-            #     self.scheduler.parsers_queue.task_done()
-            #     # time.sleep(0.1)
 
     def parse(self, html_content, root_url):
         try:
             self.logger.info(f"Parsing HTML content from {root_url}")
             soup = BeautifulSoup(html_content, 'html.parser')
+
             textual_content = soup.get_text()
-            
-            # links = {
-            #     (root_url + href).rstrip("/")
-            #     if not href.startswith("http") else href.rstrip("/")
-            #     for href in (link.get("href") for link in soup.find_all("a")) if href
-            # }
+
             links = set()
             for link_tag in soup.find_all('a', href=True):
                 href = link_tag['href']
                 # Normalize the URL
-                # absolute_url = urljoin(root_url, href)
-                # parsed_url = urlparse(absolute_url)
-                # normalized_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
                 normalized_url = normalize_url(root_url, href)
                 links.add(normalized_url)
             
-
             metadata = {
                 "title": soup.title.text if soup.title else None,
                 "description": (soup.find("meta", attrs={"name": "description"}) or {}).get("content"),
