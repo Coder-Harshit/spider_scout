@@ -30,7 +30,7 @@ class Parser(threading.Thread):
                 for link in links:
                     self.scheduler.url_frontier.add_url(link, current_depth+1)
                     
-                self.scheduler.url_frontier.display()
+                # self.scheduler.url_frontier.display()
 
                 # Synchronous indexing instead of async
                 self.indexer.index(root_url, text, links)

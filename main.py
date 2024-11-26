@@ -1,3 +1,4 @@
+from pickle import FALSE
 import sys
 import json
 from crawler.frontier import URLFrontier
@@ -71,4 +72,6 @@ if __name__ == "__main__":
     
     # After crawling is complete, output the URL relationships
     graph_data = [{"url": url, "links": list(links)} for url, links in INDEXER.url_index.items()]
-    print(json.dumps({"type": "graph", "data": graph_data}), flush=True)
+    # print(json.dumps({"type": "graph", "data": graph_data}), flush=True)
+
+    INDEXER.display_indexes()

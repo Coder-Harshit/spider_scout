@@ -70,3 +70,17 @@ class Indexer:
 
         except Exception as e:
             self.logger.error(f"Error indexing {url}: {str(e)}", exc_info=True)
+
+    def display_indexes(self, url_index=True, text_index=True):
+        '''
+        Displays the URL index and text index.
+        '''
+        if url_index:
+            print("URL Index:")
+            for url, links in self.url_index.items():
+                print(f"{url}: {links}")
+        
+        if text_index:
+            print("\nText Index:")
+            for word, urls in self.text_index.items():
+                print(f"{word}: {urls}")
