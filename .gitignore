@@ -54,3 +54,4 @@ modules/__pycache__
 *.directory
 
 *.local
+.idea/
